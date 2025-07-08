@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+<head>
+  <title>Expense Table</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+<div class="container mt-4">
+  <h1>Expense Data</h1>
+
+
+
+<form method="get" class="mb-3 row g-3 align-items-end">
+  <input type="hidden" name="file" value="{{ filename }}">
+  <input type="hidden" name="page" value="1">
+  <input type="hidden" name="per_page" value="{{ per_page }}">
+
+  <!-- Collapse toggle -->
+  <div class="col-12">
+    <label>Columns to show:</label><br>
+    <a class="btn btn-outline-secondary btn-sm mb-2" data-bs-toggle="collapse" href="#columnSelector" role="button" aria-expanded="false" aria-controls="columnSelector">
+      Show/Hide Columns
+    </a>
+  </div>
+
+  <!-- Collapsible checkboxes -->
+  <div class="collapse col-12" id="columnSelector">
+    <div class="card card-body">
+      <div class="row">
+        {% for col in all_columns %}
+          <div class="col-md-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="columns" value="{{ col }}" id="col_{{ col }}"
+                     {% if col in selected_columns %}checked{% endif %}>
+              <label class="form-check-label" for="col_{{ col }}">{{ col }}</label>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Date filters -->
+  <div class="col-auto">
+    <label for="start_date" class="form-label">From:</label>
+    <input type="date" id="start_date" name="start_date" class="form-control" value="{{ start_date }}">
+  </div>
+
+  <div class="col-auto">
+    <label for="end_date" class="form-label">To:</label>
+    <input type="date" id="end_date" name="end_date" class="form-control" value="{{ end_date }}">
+  </div>
+
+  <div class="col-auto">
+    <button type="submit" class="btn btn-primary">Apply</button>
+  </div>
+</form>
+
+
+
+  <!-- Data Table -->
+<div class="table-responsive">
+  {{ table_html | safe }}
+</div>
+
+  <!-- Pagination controls -->
+  <nav>
+    <ul class="pagination">
+      {% if page > 1 %}
+        <li class="page-item">
+          <a class="page-link" href="?file={{ filename }}&per_page={{ per_page }}&page={{ page - 1 }}">Previous</a>
+        </li>
+      {% endif %}
+      {% set total_display = 5 %}
+      {% for p in range(1, total_pages + 1) %}
+        {% if p <= total_display or p > total_pages - total_display %}
+          <li class="page-item {% if p == page %}active{% endif %}">
+            <a class="page-link" href="?file={{ filename }}&per_page={{ per_page }}&page={{ p }}">{{ p }}</a>
+          </li>
+        {% elif p == total_display + 1 %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+      {% endfor %}
+      {% if page < total_pages %}
+        <li class="page-item">
+          <a class="page-link" href="?file={{ filename }}&per_page={{ per_page }}&page={{ page + 1 }}">Next</a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+<form method="get">
+  <input type="hidden" name="file" value="{{ filename }}">
+  <input type="hidden" name="page" value="{{ page }}">
+  <input type="hidden" name="start_date" value="{{ start_date }}">
+  <input type="hidden" name="end_date" value="{{ end_date }}">
+  {% for col in selected_columns %}
+    <input type="hidden" name="columns" value="{{ col }}">
+  {% endfor %}
+    <label for="per_page">Rows per page:</label>
+    <select name="per_page" onchange="this.form.submit()">
+      {% for option in [10, 25, 50, 100, 250] %}
+        <option value="{{ option }}" {% if option == per_page %}selected{% endif %}>{{ option }}</option>
+      {% endfor %}
+    </select>
+  </form>
+</div>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Interactive Daily Expenses Graph</title>
+  <script src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>
+</head>
+<body>
+  <div id="graph" style="width: 90%; height: 500px; margin: auto;"></div>
+
+  <script>
+    var graphs = {{ graphJSON | safe }};
+    Plotly.newPlot('graph', graphs.data, graphs.layout);
+  </script>
+</body>
+</html>
