@@ -1,5 +1,7 @@
-# csv files in data
-data/*.csv
+# csv files in data and example-data
+*/data/*.csv
+example-data/*.csv
+!example-data/example.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
