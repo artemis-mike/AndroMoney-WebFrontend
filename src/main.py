@@ -12,5 +12,3 @@ if __name__ == '__main__':
   filename='2025-06.csv'
   app = create_app()
   app.run(host='0.0.0.0', debug=True)
-
-  

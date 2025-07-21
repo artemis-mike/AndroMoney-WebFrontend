@@ -22,7 +22,12 @@ def load_data(filename: str, path='data') -> pd.DataFrame:
       else:
         raise ValueError(f"No header line starting with '\"Id\"' found in {file}.")
     df = pd.read_csv(file, skiprows=header_line_index, quotechar='"', decimal='.')
-    df['Betrag'] = pd.to_numeric(df['Betrag']).astype(float)
+    df.columns = df.columns.str.strip().str.replace('"', '')
+    if 'Betrag' in df.columns:
+      df['Betrag'] = pd.to_numeric(df['Betrag']).astype(float)
+    else:
+      logging.error('Column "Betrag" not found in loaded data! Columns: %s', df.columns.tolist())
+      return pd.DataFrame()
 
   except FileNotFoundError:
     logging.error(f"File {file} not found!")
@@ -34,6 +39,8 @@ def load_data(filename: str, path='data') -> pd.DataFrame:
   return df
 
 def enrich_date(df: pd.DataFrame) -> pd.DataFrame:
+  if 'Datum' not in df.columns:
+    return df
   df['Datum'] = pd.to_datetime(df['Datum'], format='%Y%m%d', errors='coerce')
   df = df.dropna(subset=['Datum'])
   df['JahrMonat'] = df['Datum'].dt.strftime('%Y-%m')

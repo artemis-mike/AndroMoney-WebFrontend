@@ -3,14 +3,62 @@
 <head>
   <meta charset="UTF-8" />
   <title>Interactive Daily Expenses Graph</title>
-  <script src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <div id="graph" style="width: 90%; height: 500px; margin: auto;"></div>
+  <form method="get" id="groupForm" style="width:90%;max-width:900px;margin:auto;margin-bottom:1em;">
+    <label for="group_by">Group by:</label>
+    <select name="group_by" id="group_by" onchange="document.getElementById('groupForm').submit();">
+      <option value="day" {% if group_by == 'day' %}selected{% endif %}>Day</option>
+      <option value="week" {% if group_by == 'week' %}selected{% endif %}>Week</option>
+      <option value="month" {% if group_by == 'month' %}selected{% endif %}>Month</option>
+    </select>
+    <input type="hidden" name="file" value="{{ file }}">
+  </form>
+  {% if error %}
+    <div style="color: red; text-align: center; margin-bottom: 1em;">{{ error }}</div>
+  {% endif %}
+  <div style="width: 90%; max-width: 900px; margin: auto;">
+    <canvas id="expenseChart" height="100"></canvas>
+  </div>
 
   <script>
-    var graphs = {{ graphJSON | safe }};
-    Plotly.newPlot('graph', graphs.data, graphs.layout);
+    const labels = {{ labels | safe }};
+    const data = {{ data | safe }};
+    const ctx = document.getElementById('expenseChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Betrag',
+          data: data,
+          borderColor: 'rgba(75, 192, 192, 1)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          fill: true,
+          tension: 0.2,
+          pointRadius: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: true },
+          title: {
+            display: true,
+            text: 'Summierte Ausgabe'
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'Datum' }
+          },
+          y: {
+            title: { display: true, text: 'Betrag' }
+          }
+        }
+      }
+    });
   </script>
 </body>
 </html>

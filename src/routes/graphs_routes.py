@@ -11,21 +11,41 @@ graph_bp = Blueprint('graph', __name__)
 @graph_bp.route('/graph')
 def daily_expense_graph():
   filename = request.args.get('file', 'example.csv')
+  group_by = request.args.get('group_by', 'day')
   df = data_loader.load_data(filename)
+  if df.empty or 'Datum' not in df.columns:
+    error = 'No data available or missing required column "Datum".'
+    return render_template('graph_view.html', labels='[]', data='[]', group_by=group_by, file=filename, error=error)
   df = data_loader.enrich_date(df)
   df = data_loader.data_reorder(df)
   df.columns = df.columns.str.strip()
 
   df['Betrag'] = pd.to_numeric(df['Betrag'], errors='coerce')
   df = df.dropna(subset=['Betrag'])
-  daily_sum = df.groupby('Datum', as_index=False)['Betrag'].sum()
-  daily_sum['Datum'] = pd.to_datetime(daily_sum['Datum'])
-  daily_sum = daily_sum.sort_values('Datum')
 
-  # Create Plotly figure
-  fig = px.line(daily_sum, x='Datum', y='Betrag', title='Täglich summierte Ausgabe')
+  # Grouping logic
+  if group_by == 'day':
+    df['Datum_group'] = df['Datum'].dt.date
+    grouped = df.groupby('Datum_group', as_index=False)['Betrag'].sum()
+    grouped = grouped.rename(columns={'Datum_group': 'Datum'})
+    labels = grouped['Datum'].astype(str).tolist()
+  elif group_by == 'week':
+    df['Datum_group'] = df['Datum'].dt.to_period('W')
+    grouped = df.groupby('Datum_group', as_index=False)['Betrag'].sum()
+    grouped = grouped.rename(columns={'Datum_group': 'Datum'})
+    labels = grouped['Datum'].astype(str).tolist()
+  elif group_by == 'month':
+    df['Datum_group'] = df['Datum'].dt.to_period('M')
+    grouped = df.groupby('Datum_group', as_index=False)['Betrag'].sum()
+    grouped = grouped.rename(columns={'Datum_group': 'Datum'})
+    labels = grouped['Datum'].astype(str).tolist()
+  else:
+    df['Datum_group'] = df['Datum'].dt.date
+    grouped = df.groupby('Datum_group', as_index=False)['Betrag'].sum()
+    grouped = grouped.rename(columns={'Datum_group': 'Datum'})
+    labels = grouped['Datum'].astype(str).tolist()
 
-  # Convert to JSON for embedding in template
-  graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+  data = grouped['Betrag'].tolist()
+  print(df)
 
-  return render_template('graph_view.html', graphJSON=graphJSON)
+  return render_template('graph_view.html', labels=json.dumps(labels), data=json.dumps(data), group_by=group_by, file=filename, error=None)
