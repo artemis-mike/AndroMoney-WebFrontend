@@ -46,5 +46,6 @@ def show_data_table():
     all_columns=list(df.columns),
     selected_columns=selected_columns,
     start_date=start_date_str,
-    end_date=end_date_str
+    end_date=end_date_str,
+    active='table'
   )

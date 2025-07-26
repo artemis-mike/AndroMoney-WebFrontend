@@ -1,0 +1,15 @@
+{# Shared menu partial for switching between Table and Graph view #}
+<ul class="nav nav-tabs mb-4">
+  <li class="nav-item">
+    <a class="nav-link {% if active == 'table' %}active{% endif %}" aria-current="page"
+       href="/?file={{ filename }}{% if page %}&page={{ page }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}{% for col in selected_columns %}&columns={{ col }}{% endfor %}">
+      Table View
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if active == 'graph' %}active{% endif %}"
+       href="/graph?file={{ filename }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}{% for col in selected_columns %}&columns={{ col }}{% endfor %}">
+      Graph View
+    </a>
+  </li>
+</ul> 
