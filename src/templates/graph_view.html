@@ -13,6 +13,45 @@
     <h1>Expense Graph</h1>
     {% include 'menu.html' with context %}
     <form method="get" id="groupForm" class="mb-3 row g-3 align-items-end">
+      <!-- Collapse toggle for categories -->
+      <div class="col-12">
+        <label>Categories and Subcategories to show:</label><br>
+        <a class="btn btn-outline-secondary btn-sm mb-2" data-bs-toggle="collapse" href="#categorySelector" role="button" aria-expanded="true" aria-controls="categorySelector">
+          Show/Hide Categories & Subcategories
+        </a>
+      </div>
+
+      <!-- Collapsible category and subcategory checkboxes -->
+      <div class="collapse show col-12" id="categorySelector">
+        <div class="card card-body">
+          <h6>Categories:</h6>
+          <div class="row">
+            {% for cat in all_categories %}
+              <div class="col-md-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="categories" value="{{ cat }}" id="cat_{{ cat }}"
+                         {% if cat in selected_categories %}checked{% endif %} onchange="this.form.submit()">
+                  <label class="form-check-label" for="cat_{{ cat }}">{{ cat }}</label>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          <hr>
+          <h6>Subcategories:</h6>
+          <div class="row">
+            {% for subcat in all_subcategories %}
+              <div class="col-md-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="subcategories" value="{{ subcat }}" id="subcat_{{ subcat }}"
+                         {% if subcat in selected_subcategories %}checked{% endif %}>
+                  <label class="form-check-label" for="subcat_{{ subcat }}">{{ subcat }}</label>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
       <div class="row g-3 align-items-end">
         <div class="col-auto">
           <label for="group_by">Group by:</label>
@@ -33,6 +72,12 @@
         <div class="col-auto">
           <button type="submit" class="btn btn-primary">Apply</button>
         </div>
+        <div class="col-auto">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="show_total" value="1" id="show_total" {% if show_total %}checked{% endif %}>
+            <label class="form-check-label" for="show_total">Show overall total</label>
+          </div>
+        </div>
         <input type="hidden" name="file" value="{{ filename }}">
       </div>
     </form>
@@ -46,21 +91,13 @@
 
   <script>
     const labels = JSON.parse('{{ labels | tojson | safe }}');
-    const data = JSON.parse('{{ data | tojson | safe }}');
+    const datasets = JSON.parse('{{ datasets | tojson | safe }}');
     const ctx = document.getElementById('expenseChart').getContext('2d');
     new Chart(ctx, {
       type: 'line',
       data: {
         labels: labels,
-        datasets: [{
-          label: 'Betrag',
-          data: data,
-          borderColor: 'rgba(75, 192, 192, 1)',
-          backgroundColor: 'rgba(75, 192, 192, 0.2)',
-          fill: true,
-          tension: 0.2,
-          pointRadius: 2
-        }]
+        datasets: datasets
       },
       options: {
         responsive: true,
