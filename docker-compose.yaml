@@ -1,6 +1,6 @@
 services:
   app:
-    image: andromoney-webfrontend:latest 
+    image: ghcr.io/artemis-mike/andromoney-webfrontend:latest
     restart: unless-stopped
     ports:
       - "5000:5000"
