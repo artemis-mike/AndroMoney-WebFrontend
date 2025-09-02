@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository@L }}  # Use github.repository as lowercase (@L)
+  GITHUB_REPOSITORY: ${{ github.repository }}
   SHA: ${{ github.sha }}
 
 permissions:
@@ -31,10 +31,14 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: lower-repo
+        run: |
+          echo "repository=${GITHUB_REPOSITORY@L}" >> $GITHUB_OUTPUT"
       
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest, ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.SHA }}
+          tags: ${{ env.REGISTRY }}/${{ steps.lower-repo.outputs.repository }}:latest, ${{ env.REGISTRY }}/${{ steps.lower-repo.outputs.repository }}:${{ env.SHA }}
