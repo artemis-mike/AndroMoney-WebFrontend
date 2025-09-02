@@ -34,7 +34,7 @@ jobs:
 
       - id: lower-repo
         run: |
-          echo "repository=${GITHUB_REPOSITORY@L}" >> $GITHUB_OUTPUT"
+          echo "repository=${GITHUB_REPOSITORY@L}" >> $GITHUB_OUTPUT
       
       - name: Build and push
         uses: docker/build-push-action@v6
