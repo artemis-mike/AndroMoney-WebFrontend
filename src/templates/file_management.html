@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>File Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+  <div class="container mt-4">
+    <h1>File Management</h1>
+    
+    {% include 'menu.html' with context %}
+    
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Upload from PC Section -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">Upload File from PC</h5>
+      </div>
+      <div class="card-body">
+        <form action="{{ url_for('file_management.upload_file') }}" method="post" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label for="file" class="form-label">Select CSV file to upload:</label>
+            <input type="file" class="form-control" id="file" name="file" accept=".csv" required>
+            <div class="form-text">Only CSV files are allowed. Files with the same name will be rejected.</div>
+          </div>
+          <button type="submit" class="btn btn-primary">Upload File</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Download from Google Drive Section -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">Download from Google Drive</h5>
+      </div>
+      <div class="card-body">
+        <form action="{{ url_for('file_management.download_from_drive') }}" method="post">
+          <div class="mb-3">
+            <label for="share_url" class="form-label">Google Drive Sharing URL:</label>
+            <input type="url" class="form-control" id="share_url" name="share_url" 
+                   placeholder="https://drive.google.com/file/d/FILE_ID/view" 
+                   value="{{ default_share_url }}" required>
+            <div class="form-text">Paste the sharing link from Google Drive here.{% if default_share_url %} Default URL loaded from environment variable.{% endif %}</div>
+          </div>
+          <div class="mb-3">
+            <label for="filename" class="form-label">Custom filename (optional):</label>
+            <input type="text" class="form-control" id="filename" name="filename" 
+                   placeholder="andromoney.csv">
+            <div class="form-text">If not provided, a default name will be used.</div>
+          </div>
+          <div class="mb-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="override_existing" id="override_existing">
+              <label class="form-check-label" for="override_existing">
+                Override existing file
+              </label>
+              <div class="form-text">Check this to replace an existing file with the same name.</div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-success">Download from Google Drive</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- File List Section -->
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Current Files in Data Directory</h5>
+      </div>
+      <div class="card-body">
+        {% if files %}
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Filename</th>
+                  <th>Size</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for file in files %}
+                  <tr>
+                    <td>
+                      <strong>{{ file.name }}</strong>
+                    </td>
+                    <td>
+                      {{ file.size_mb }} MB
+                      <small class="text-muted">({{ file.size }} bytes)</small>
+                    </td>
+                    <td>
+                      <div class="btn-group" role="group">
+                        <a href="/?file={{ file.name }}" class="btn btn-sm btn-outline-primary">View in Table</a>
+                        <a href="/graph?file={{ file.name }}" class="btn btn-sm btn-outline-info">View Graph</a>
+                        <button type="button" class="btn btn-sm btn-outline-danger" 
+                                onclick="confirmDelete('{{ file.name }}', '{{ file.size_mb }}')">
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center text-muted">
+            <p>No CSV files found in the data directory.</p>
+            <p>Upload a file or download from Google Drive to get started.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden form for deletion -->
+  <form id="deleteForm" method="post" style="display: none;">
+    <input type="hidden" name="filename" id="deleteFilename">
+  </form>
+
+  <script>
+    function confirmDelete(filename, size) {
+      const message = `⚠️ WARNING: You are about to permanently delete the file "${filename}" (${size} MB).\n\nThis action cannot be undone!\n\nAre you absolutely sure you want to delete this file?`;
+      
+      if (confirm(message)) {
+        // Set the filename and submit the form
+        document.getElementById('deleteFilename').value = filename;
+        document.getElementById('deleteForm').action = `/delete/${filename}`;
+        document.getElementById('deleteForm').submit();
+      }
+    }
+  </script>
+</body>
+</html>
