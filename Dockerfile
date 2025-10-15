@@ -1,4 +1,4 @@
-FROM python:3.13-rc-slim
+FROM python:3.15-rc-slim
 RUN ["python3", "-m", "pip", "install", "pandas", "Flask", "routes", "plotly", "requests", "werkzeug"]
 
 RUN mkdir /app
